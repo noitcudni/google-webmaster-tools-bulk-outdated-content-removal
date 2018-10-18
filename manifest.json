@@ -5,7 +5,7 @@
   "description": "",
   "content_scripts": [
     {
-      "matches" : ["https://www.google.com/webmasters/tools/removals"],
+      "matches" : ["https://www.google.com/webmasters/tools/removals*"],
       "js": ["jquery-3.3.1.min.js", "bulk_outdated_content_removal.js"]
     }
   ],
@@ -15,6 +15,6 @@
     ]
   },
   "permissions": [
-    "https://www.google.com/webmasters/tools/removals"
+    "https://www.google.com/webmasters/tools/removals*"
   ]
 }
