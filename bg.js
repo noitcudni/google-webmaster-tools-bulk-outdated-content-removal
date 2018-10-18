@@ -17,16 +17,22 @@ chrome.runtime.onConnect.addListener((port) => {
       });
 
     } else if (msg.type === 'nextVictim') {
-      victimUrlArray.shift();
-      var victimUrl = victimUrlArray[0];
+      // find the next victim
+      if (executionInProgress) {
+        victimUrlArray.shift();
+        var victimUrl = victimUrlArray[0];
 
-      if (victimUrl !== undefined) {
-        port.postMessage({
-          'type' : 'removeUrl',
-          'victim' : victimUrl
-        });
+        if (victimUrl !== undefined) {
+          port.postMessage({
+            'type' : 'removeUrl',
+            'victim' : victimUrl
+          });
+        } else {
+          executionInProgress = false; //done
+          victimUrlArray = null;
+        }
       } else {
-        executionInProgress = false; //done
+        console.log("no victim to be executed.");
       }
 
       // find the next victim
