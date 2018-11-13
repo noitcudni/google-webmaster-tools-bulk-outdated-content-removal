@@ -7,8 +7,24 @@ var buttonCss = {
   "margin-left" : "4px"
 };
 
+// wait for the first selector to be visible and then click on it
+// Then, do the same for the next selector in the array.
+function clickWithWait(selectorArray) {
+  if (selectorArray.length == 0) return;
+
+  var $target = $(selectorArray[0]);
+
+  if ($target == null || !$target.is(':visible')) {
+    window.setTimeout(clickWithWait, 1000, selectorArray);
+  } else {
+    $target.trigger('click');
+    selectorArray.shift();
+    // click on the next selector
+    clickWithWait(selectorArray);
+  }}
+
 function longPoll() {
-  var $requestRemovalbtn = $("#gwt-uid-28");
+  var $requestRemovalbtn = $("button > div:contains('Request Removal')");
 
   if ($requestRemovalbtn == null || !$requestRemovalbtn.is(':visible')) {
     window.setTimeout(longPoll, 1000);
@@ -24,14 +40,8 @@ function longPoll() {
         $(".gwt-TextBox").attr('value', victim);
         $requestRemovalbtn.trigger('click');
 
-        setTimeout(() => {
-          // modal request removal btn
-          $("#gwt-uid-88").trigger('click');
-          setTimeout(() => {
-            // click on ok
-            $("#gwt-uid-96").trigger('click');
-          }, 1300);
-        }, 1300);
+        clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
+                       "div[role='dialog'] button div:contains('OK')"]);
       }
     });
 
