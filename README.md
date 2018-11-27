@@ -1,7 +1,6 @@
 # Google Webmaster Tools Bulk Outdated Content Removal Chrome Extension
 ## Install from Google Webstore
-Coming soon!
-
+https://chrome.google.com/webstore/detail/webmastertools-bulk-outda/nifcnomokilnniefahjbcelkepelpphl
 
 ## Installation
 1. Download the extension from [github](https://github.com/noitcudni/google-webmaster-tools-bulk-outdated-content-removal/archive/master.zip) and unzip it.
