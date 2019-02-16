@@ -7,6 +7,7 @@ var buttonCss = {
   "margin-left" : "4px"
 };
 
+
 // wait for the first selector to be visible and then click on it
 // Then, do the same for the next selector in the array.
 function clickWithWait(selectorArray) {
@@ -22,6 +23,35 @@ function clickWithWait(selectorArray) {
     // click on the next selector
     clickWithWait(selectorArray);
   }}
+
+// Wait until one of the text shows up
+function removal_type_mux() {
+  // outdated page removal: "Now you can submit your temporary removal request."
+  // change_content: "We think the web page you're trying to remove hasn't been removed by the site owner."
+
+  var $dialog = $("div[role='dialog']");
+  console.log($dialog);//xxx
+
+  if ($dialog == null || !$dialog.is(':visible')) {
+    window.setTimeout(removal_type_mux, 1000);
+  } else {
+    if ($dialog.text().includes("analyzingCancel")) {
+      window.setTimeout(removal_type_mux, 1000);
+    } else if ($dialog.text().includes("Now you can submit your temporary removal request.")) {
+      // outdated_page_removal
+      clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
+                     "div[role='dialog'] button div:contains('OK')"]);
+
+    } else if ($dialog.text().includes("We think the web page you're trying to remove hasn't been removed by the site owner.")) {
+      // changed_content
+      clickWithWait(["div[role='dialog'] button div:contains('Next')",
+                     "div[role='dialog'] button div:contains('Next')"]);
+      // enter your missing word here
+      // clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
+      //                "div[role='dialog'] button div:contains('OK')"]);
+    }
+  }
+}
 
 function longPoll() {
   var $requestRemovalbtn = $("button > div:contains('Request Removal')");
@@ -40,8 +70,7 @@ function longPoll() {
         $(".gwt-TextBox").attr('value', victim);
         $requestRemovalbtn.trigger('click');
 
-        clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
-                       "div[role='dialog'] button div:contains('OK')"]);
+        removal_type_mux();
       }
     });
 
@@ -79,3 +108,5 @@ function longPoll() {
 $(document).ready(() => {
   longPoll();
 });
+
+// test word: amphawan
