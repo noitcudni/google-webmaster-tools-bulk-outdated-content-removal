@@ -24,8 +24,19 @@ function clickWithWait(selectorArray) {
     clickWithWait(selectorArray);
   }}
 
+function inputWithWait(selector, input_text) {
+  var $target = $(selector);
+
+  if ($target == null || !$target.is(':visible')) {
+    window.setTimeout(inputWithWait, 1000, selector);
+  } else {
+    $target.attr('value', input_text);
+    clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
+                   "div[role='dialog'] button div:contains('OK')"]);
+  }}
+
 // Wait until one of the text shows up
-function removal_type_mux() {
+function removal_type_mux(deltaWord) {
   // outdated page removal: "Now you can submit your temporary removal request."
   // change_content: "We think the web page you're trying to remove hasn't been removed by the site owner."
 
@@ -33,10 +44,10 @@ function removal_type_mux() {
   console.log($dialog);//xxx
 
   if ($dialog == null || !$dialog.is(':visible')) {
-    window.setTimeout(removal_type_mux, 1000);
+    window.setTimeout(removal_type_mux, 1000, deltaWord);
   } else {
     if ($dialog.text().includes("analyzingCancel")) {
-      window.setTimeout(removal_type_mux, 1000);
+      window.setTimeout(removal_type_mux, 1000, deltaWord);
     } else if ($dialog.text().includes("Now you can submit your temporary removal request.")) {
       // outdated_page_removal
       clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
@@ -46,9 +57,10 @@ function removal_type_mux() {
       // changed_content
       clickWithWait(["div[role='dialog'] button div:contains('Next')",
                      "div[role='dialog'] button div:contains('Next')"]);
-      // enter your missing word here
-      // clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
-      //                "div[role='dialog'] button div:contains('OK')"]);
+
+      if (deltaWord != undefined) {
+        inputWithWait("div[role='dialog'] input[placeholder='Enter one word here...']", deltaWord.trim());
+      }
     }
   }
 }
@@ -64,13 +76,16 @@ function longPoll() {
     port.onMessage.addListener(function(msg) {
       console.log("port.onMessage: ", msg); //xxx
       if (msg.type === 'removeUrl') {
-        var victim = msg.victim;
+        var cols = msg.rowTxt.split(",");
+        var victim = cols[0];
+        // Enter a word that no longer appears on the live page, but appears in the cached version.
+        var deltaWord = cols[1];
         console.log("about to remove: ", victim);
 
         $(".gwt-TextBox").attr('value', victim);
         $requestRemovalbtn.trigger('click');
 
-        removal_type_mux();
+        removal_type_mux(deltaWord);
       }
     });
 
@@ -108,5 +123,3 @@ function longPoll() {
 $(document).ready(() => {
   longPoll();
 });
-
-// test word: amphawan

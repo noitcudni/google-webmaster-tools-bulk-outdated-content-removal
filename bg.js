@@ -1,35 +1,35 @@
 var executionInProgress = false;
-var victimUrlArray = null;
+var rowArray = null;
 
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     if (msg.type === 'initVictims') {
       executionInProgress = true;
-      victimUrlArray = msg.rawTxt.replace(/^\s+|\s+$/g, '').split('\n');
-      victimUrlArray = victimUrlArray.filter(v => v.length > 0);
+      rowArray = msg.rawTxt.replace(/^\s+|\s+$/g, '').split('\n');
+      rowArray = rowArray.filter(v => v.length > 0);
 
-      var victimUrl = victimUrlArray[0];
-      console.log("victimUrlArray: " + victimUrlArray);//xxx
+      var rowTxt = rowArray[0];
+      console.log("rowArray: " + rowArray);//xxx
 
       port.postMessage({
         'type' : 'removeUrl',
-        'victim' : victimUrl
+        'rowTxt' : rowTxt
       });
 
     } else if (msg.type === 'nextVictim') {
       // find the next victim
       if (executionInProgress) {
-        victimUrlArray.shift();
-        var victimUrl = victimUrlArray[0];
+        rowArray.shift();
+        var rowTxt = rowArray[0];
 
-        if (victimUrl !== undefined) {
+        if (rowTxt !== undefined) {
           port.postMessage({
             'type' : 'removeUrl',
-            'victim' : victimUrl
+            'rowTxt' : rowTxt
           });
         } else {
           executionInProgress = false; //done
-          victimUrlArray = null;
+          rowArray = null;
         }
       } else {
         console.log("no victim to be executed.");
