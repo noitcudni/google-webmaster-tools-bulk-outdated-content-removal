@@ -9,6 +9,17 @@ https://chrome.google.com/webstore/detail/webmastertools-bulk-outda/nifcnomokiln
 
 ## Usage
 
-1. Create a list of outdated urls to be removed and store them in a file. All urls are separated by \n.
+1. Create a list of outdated urls to be removed and store them in a csv file.
+  * First column: url (required)
+  * A word that no longer appears on the live page but appears in the cached version (optional)
+Example:
+```
+url0,helloworld
+url1
+```
+
+If the page no longer exists and the optional word is provided, the corresponding word will be ignored.
+On the other hand, if the page still exists, and you failed to provide the optional word, the automation will pause so that you'll have a chance to enter the "missing" word.
+
 2. Visit https://www.google.com/webmasters/tools/removals
 3. Click on the "Upload Your File" button.
