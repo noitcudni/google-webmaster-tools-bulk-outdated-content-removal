@@ -31,12 +31,13 @@ function inputWithWait(selector, input_text) {
     window.setTimeout(inputWithWait, 1000, selector);
   } else {
     $target.attr('value', input_text);
+
     clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
                    "div[role='dialog'] button div:contains('OK')"]);
   }}
 
 // Wait until one of the text shows up
-function removal_type_mux(deltaWord) {
+function removal_type_mux(supplementary_arg) {
   // outdated page removal: "Now you can submit your temporary removal request."
   // change_content: "We think the web page you're trying to remove hasn't been removed by the site owner."
 
@@ -44,22 +45,29 @@ function removal_type_mux(deltaWord) {
   console.log($dialog);//xxx
 
   if ($dialog == null || !$dialog.is(':visible')) {
-    window.setTimeout(removal_type_mux, 1000, deltaWord);
+    window.setTimeout(removal_type_mux, 1000, supplementary_arg);
   } else {
     if ($dialog.text().includes("analyzingCancel")) {
-      window.setTimeout(removal_type_mux, 1000, deltaWord);
+      window.setTimeout(removal_type_mux, 1000, supplementary_arg);
     } else if ($dialog.text().includes("Now you can submit your temporary removal request.")) {
       // outdated_page_removal
       clickWithWait(["div[role='dialog'] button div:contains('Request Removal')",
                      "div[role='dialog'] button div:contains('OK')"]);
 
-    } else if ($dialog.text().includes("We think the web page you're trying to remove hasn't been removed by the site owner.")) {
+    // } else if ($dialog.text().includes("We think the web page you're trying to remove hasn't been removed by the site owner.")) {
+    } else if ($dialog.text().includes("The URL you want to remove is:")) {
       // changed_content
       clickWithWait(["div[role='dialog'] button div:contains('Next')",
                      "div[role='dialog'] button div:contains('Next')"]);
 
-      if (deltaWord != undefined) {
-        inputWithWait("div[role='dialog'] input[placeholder='Enter one word here...']", deltaWord.trim());
+      if (supplementary_arg != undefined) {
+        inputWithWait("div[role='dialog'] input[placeholder='Enter one word here...']", supplementary_arg.trim());
+      }
+    } else if ($dialog.text().includes("The image you want to remove is:")) {
+      clickWithWait(["div[role='dialog'] button div:contains('Next')"]);
+
+      if (supplementary_arg != undefined) {
+        inputWithWait("div[role='dialog'] input[placeholder='Example URL: https://www.google.com/url?url=http://www.example.com/oldpage']", supplementary_arg.trim());
       }
     }
   }
@@ -79,13 +87,13 @@ function longPoll() {
         var cols = msg.rowTxt.split(",");
         var victim = cols[0];
         // Enter a word that no longer appears on the live page, but appears in the cached version.
-        var deltaWord = cols[1];
+        var supplementary_arg = cols[1];
         console.log("about to remove: ", victim);
 
         $(".gwt-TextBox").attr('value', victim);
         $requestRemovalbtn.trigger('click');
 
-        removal_type_mux(deltaWord);
+        removal_type_mux(supplementary_arg);
       }
     });
 
