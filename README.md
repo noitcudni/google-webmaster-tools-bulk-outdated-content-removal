@@ -16,10 +16,12 @@ Example:
 ```
 url0,helloworld
 url1
+image_url0, url-that-belongs-to
 ```
 
 If the page no longer exists and the optional word is provided, the corresponding word will be ignored.
 On the other hand, if the page still exists, and you failed to provide the optional word, the automation will pause so that you'll have a chance to enter the "missing" word.
+
 
 2. Visit https://www.google.com/webmasters/tools/removals
 3. Click on the "Upload Your File" button.
