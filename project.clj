@@ -10,7 +10,8 @@
                  [prismatic/dommy "1.1.0"]
                  [testdouble/clojurescript.csv "0.4.5"]
                  [domina "1.0.3"]
-
+                 [reagent "0.8.1"]
+                 [re-com "2.6.0"]
                  [figwheel "0.5.19"]
                  [environ "1.1.0"]]
 
