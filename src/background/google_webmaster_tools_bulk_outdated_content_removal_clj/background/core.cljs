@@ -9,7 +9,7 @@
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
-            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [test-storage!]]))
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [store-victims!]]))
 
 (def clients (atom []))
 
@@ -39,6 +39,7 @@
       (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
         (cond (= type :init-victims) (do
                                        (prn "background: inside :init-victims")
+                                       (store-victims! whole-edn)
                                        )
               (= type :next-victim) (do
                                       (prn "background: inside :next-victim")
@@ -91,5 +92,4 @@
 
 (defn init! []
   (prn "BACKGROUND: init")
-  (test-storage!)
   (boot-chrome-event-loop!))

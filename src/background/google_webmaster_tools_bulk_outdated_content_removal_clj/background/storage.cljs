@@ -1,28 +1,36 @@
 (ns google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [cljs.core.async :refer [<! chan]]
+  (:require [cljs.core.async :refer [<! >! chan]]
+            [cljs-time.core :as t]
+            [cljs-time.coerce :as tc]
             [chromex.logging :refer-macros [log info warn error group group-end]]
-            [chromex.protocols.chrome-storage-area :refer [get set]]
+            [chromex.protocols.chrome-storage-area :as storage-area]
             [chromex.ext.storage :as storage]))
 
-(defn test-storage! []
+(def ^:dynamic *DONE-FLAG* "**D0N3-FL@G**")
+
+(defn store-victims!
+  [{:keys [data]}]
+  (let [local-storage (storage/get-local)
+        data (concat data [["poison-pill" *DONE-FLAG*]])]
+    (go-loop [[[url supplementary-arg :as curr] & more] data
+              idx 0]
+      (let [[_ err] (<! (storage-area/get local-storage url))]
+        (if err
+          (error (str "fetching " url ":") err)
+          (storage-area/set local-storage (clj->js {url {"submit-ts" (tc/to-long (t/now))
+                                                         "remove-ts" nil
+                                                         "supplementary-arg" supplementary-arg
+                                                         "idx" idx}
+                                                    })))
+        (recur more (inc idx))
+        ))))
+
+
+(defn print-victims []
   (let [local-storage (storage/get-local)]
-    (set local-storage #js {"key1" "string"
-                            "key2" #js [1 2 3]
-                            "key3" true
-                            "key4" nil})
     (go
-      (let [[[items] error] (<! (get local-storage))]
-        (if error
-          (error "fetch all error:" error)
-          (log "fetch all:" items))))
-    (go
-      (let [[[items] error] (<! (get local-storage "key1"))]
-        (if error
-          (error "fetch key1 error:" error)
-          (log "fetch key1:" items))))
-    (go
-      (let [[[items] error] (<! (get local-storage #js ["key2" "key3"]))]
-        (if error
-          (error "fetch key2 and key3 error:" error)
-          (log "fetch key2 and key3:" items))))))
+      (let [[[items] error] (<! (storage-area/get local-storage))]
+        (prn (js->clj items))
+        ))
+    ))

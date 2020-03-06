@@ -9,6 +9,7 @@
             [domina :refer [single-node nodes]]
             [domina.xpath :refer [xpath]]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [print-victims]]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]))
 
 (def upload-chan (chan 1 (map (fn [e]
@@ -64,8 +65,14 @@
                              :style {:width "200px"
                                      :background-color "#007bff"
                                      :color "white"}
-                             :on-click (fn [e] (-> "//input[@id='bulkCsvFileInput']" xpath single-node .click))
-
+                             :on-click (fn [e] (-> "//input[@id='bulkCsvFileInput']" xpath single-node .click))]
+                            [recom/button
+                             :label "View cache"
+                             :style {:width "200px"}
+                             :on-click (fn [_]
+                                         (print-victims)
+                                         ;; TODO print bad-victims
+                                         )
                              ]
                             ;; TODO: do we need clear cache and view cache?
                             ]
