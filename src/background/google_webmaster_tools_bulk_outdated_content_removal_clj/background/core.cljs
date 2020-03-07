@@ -29,6 +29,25 @@
   (let [remove-item (fn [coll item] (remove #(identical? item %) coll))]
     (swap! clients remove-item client)))
 
+
+(defn popup-predicate [client]
+  (re-find #"popup.html" (-> client
+                             get-sender
+                             js->clj
+                             (get "url"))))
+
+(defn get-popup-client []
+  (->> @clients
+       (filter popup-predicate)
+       first ;;this should only be one popup
+       ))
+
+(defn get-content-client []
+  (->> @clients
+       (filter (complement popup-predicate))
+       first ;;this should only be one popup
+       ))
+
 ; -- client event loop ------------------------------------------------------------------------------------------------------
 
 (defn run-client-message-loop! [client]
@@ -40,12 +59,12 @@
         (cond (= type :init-victims) (do
                                        (prn "background: inside :init-victims")
                                        (store-victims! whole-edn)
+                                       (post-message! (get-content-client) (common/marshall {:type :done-init-victims}))
                                        )
               (= type :next-victim) (do
                                       (prn "background: inside :next-victim")
                                       )
               )
-
         )
       (recur))
     (prn "BACKGROUND: leaving event loop for client:" (get-sender client))
@@ -55,7 +74,6 @@
 
 (defn handle-client-connection! [client]
   (add-client! client)
-  (post-message! client "hello from BACKGROUND PAGE!")
   (run-client-message-loop! client))
 
 ;; (defn tell-clients-about-new-tab! []
