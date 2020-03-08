@@ -21,11 +21,31 @@
           (storage-area/set local-storage (clj->js {url {"submit-ts" (tc/to-long (t/now))
                                                          "remove-ts" nil
                                                          "supplementary-arg" supplementary-arg
+                                                         "status" "pending"
                                                          "idx" idx}
                                                     })))
         (recur more (inc idx))
         ))))
 
+(defn update-storage [url & args]
+  {:pre [(even? (count args))]}
+  (let [kv-pairs (partition 2 args)
+        local-storage (storage/get-local)
+        ch (chan)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage url))]
+        (if error
+          (error (str "fetching " url ":") error)
+          (let [entry (->> (js->clj items) vals first)
+                r {url (->> kv-pairs
+                            (reduce (fn [accum [k v]]
+                                      (assoc accum k v))
+                                    entry))
+                   }]
+            (storage-area/set local-storage (clj->js r))
+            (>! ch r)
+            ))))
+    ch))
 
 (defn print-victims []
   (let [local-storage (storage/get-local)]
@@ -34,3 +54,55 @@
         (prn (js->clj items))
         ))
     ))
+
+
+(defn current-removal-attempt
+  "NOTE: There should only be one item that's undergoing removal.
+  Return nil if not found.
+  Return URL if found.
+  "
+  []
+  (let [local-storage (storage/get-local)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))]
+        (->> items
+             js->clj
+             (filter (fn [[k v]]
+                       (= "removing" (get v "status"))))
+             first)
+        ))
+    ))
+
+(defn fresh-new-victim []
+  (let [local-storage (storage/get-local)
+        ch (chan)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))
+            [victim-url victim-entry] (->> (or items '())
+                                           js->clj
+                                           (filter (fn [[k v]]
+                                                     (let [status (get v "status")]
+                                                       (= "pending" status))))
+                                           (sort-by (fn [[_ v]] (get v "idx")))
+                                           first)
+            _ (when-not (nil? victim-entry) (<! (update-storage victim-url "status" "removing")))
+            victim (<! (current-removal-attempt))]
+        (>! ch victim)
+        ))
+    ch))
+
+(defn next-victim []
+  (let [;;local-storage (storage/get-local)
+        ch (chan)]
+    (go
+      (let [victim (<! (current-removal-attempt))
+            _ (prn "victim from current-removal-attempt: " victim) ;;xxx
+            victim (if (empty? victim)
+                     (<! (fresh-new-victim))
+                     victim)
+            _ (prn "storage: next-victim: " victim) ;;xxx
+            ]
+        ;; TODO: maybe consider closing the channel
+        (>! ch victim)
+        ))
+    ch))

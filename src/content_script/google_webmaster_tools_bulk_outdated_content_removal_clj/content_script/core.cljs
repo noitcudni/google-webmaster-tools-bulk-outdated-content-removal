@@ -7,13 +7,20 @@
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
             ))
 
+;; (defn exec-removal-request
+;;   [l]
+
+;;   )
+
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
 
 (defn process-message! [chan message]
   (let [_ (log "CONTENT SCRIPT: got message:" message)
         {:keys [type] :as whole-msg} (common/unmarshall message)]
     (cond (= type :done-init-victims) (post-message! chan (common/marshall {:type :next-victim}))
-          (= type :remove-url) (prn "handling removel-url")
+          (= type :remove-url) (do (prn "handling removel-url") ;;xxx
+                                   (prn "whole-msg")
+                                   )
           )))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------

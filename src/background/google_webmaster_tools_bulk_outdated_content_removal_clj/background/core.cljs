@@ -9,7 +9,7 @@
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
-            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [store-victims!]]))
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [store-victims! next-victim]]))
 
 (def clients (atom []))
 
@@ -48,6 +48,19 @@
        first ;;this should only be one popup
        ))
 
+(defn fetch-next-victim [client]
+  (go
+    (let [[victim-url victim-entry] (<! (next-victim))
+          _ (prn "fetch-next-victim: victim-url: " victim-url)
+          _ (prn "fetch-next-victim: victim-entry: " victim-entry)]
+      ;; TODO what to do with victim-entry
+      (post-message! client
+                     (common/marshall {:type :remove-url
+                                       :victim victim-url
+                                       })
+                     )
+      )))
+
 ; -- client event loop ------------------------------------------------------------------------------------------------------
 
 (defn run-client-message-loop! [client]
@@ -63,6 +76,7 @@
                                        )
               (= type :next-victim) (do
                                       (prn "background: inside :next-victim")
+                                      (<! (fetch-next-victim client))
                                       )
               )
         )
