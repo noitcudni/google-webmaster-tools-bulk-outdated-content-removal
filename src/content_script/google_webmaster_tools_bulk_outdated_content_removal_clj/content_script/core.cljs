@@ -19,7 +19,7 @@
         {:keys [type] :as whole-msg} (common/unmarshall message)]
     (cond (= type :done-init-victims) (post-message! chan (common/marshall {:type :next-victim}))
           (= type :remove-url) (do (prn "handling removel-url") ;;xxx
-                                   (prn "whole-msg")
+                                   (prn "whole-msg", whole-msg)
                                    )
           )))
 

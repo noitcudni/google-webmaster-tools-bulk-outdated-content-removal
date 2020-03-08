@@ -57,8 +57,8 @@
       (post-message! client
                      (common/marshall {:type :remove-url
                                        :victim victim-url
-                                       })
-                     )
+                                       :supplementary-arg (get victim-entry "supplementary-arg")
+                                       }))
       )))
 
 ; -- client event loop ------------------------------------------------------------------------------------------------------
