@@ -106,3 +106,7 @@
         (>! ch victim)
         ))
     ch))
+
+(defn clear-victims! []
+  (let [local-storage (storage/get-local)]
+    (storage-area/clear local-storage)))

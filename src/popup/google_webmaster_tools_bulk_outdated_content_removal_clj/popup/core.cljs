@@ -9,7 +9,7 @@
             [domina :refer [single-node nodes]]
             [domina.xpath :refer [xpath]]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
-            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [print-victims]]
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [print-victims clear-victims!]]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]))
 
 (def upload-chan (chan 1 (map (fn [e]
@@ -66,6 +66,13 @@
                                      :background-color "#007bff"
                                      :color "white"}
                              :on-click (fn [e] (-> "//input[@id='bulkCsvFileInput']" xpath single-node .click))]
+                            [recom/button
+                             :label "Clear cache"
+                             :style {:width "200px"}
+                             :on-click (fn [_]
+                                         (clear-victims!)
+                                         #_(set-badge-text #js{"text" ""})
+                                         #_(reset! cached-bad-victims-atom nil))]
                             [recom/button
                              :label "View cache"
                              :style {:width "200px"}
