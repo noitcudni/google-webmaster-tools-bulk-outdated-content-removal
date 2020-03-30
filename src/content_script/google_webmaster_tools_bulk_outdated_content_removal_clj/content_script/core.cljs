@@ -144,12 +144,8 @@
 (defn process-message! [chan message]
   (let [_ (log "CONTENT SCRIPT: got message:" message)
         {:keys [type victim supplementary-arg] :as whole-msg} (common/unmarshall message)]
-    (cond (= type :done-init-victims) (do
-                                        (prn "handling done-init-victims ...")
-                                        (post-message! chan (common/marshall {:type :next-victim})))
-          (= type :remove-url) (do (prn "handling removel-url") ;;xxx
-                                   (if (= victim "poison-pill")
-                                     (js/alert "All done!")
+    (cond (= type :remove-url) (do (prn "handling removel-url") ;;xxx
+                                   (when-not (or (nil? victim) (= victim "poison-pill"))
                                      (exec-removal-request victim supplementary-arg))
                                    )
           )))

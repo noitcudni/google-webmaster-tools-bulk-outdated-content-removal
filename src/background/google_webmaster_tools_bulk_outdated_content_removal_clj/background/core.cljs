@@ -72,11 +72,11 @@
         (cond (= type :init-victims) (do
                                        (prn "background: inside :init-victims")
                                        (store-victims! whole-edn)
-                                       (post-message! (get-content-client) (common/marshall {:type :done-init-victims}))
+                                       (<! (fetch-next-victim (get-content-client)))
                                        )
               (= type :next-victim) (do
                                       (prn "background: inside :next-victim")
-                                      (<! (fetch-next-victim client))
+                                      (<! (fetch-next-victim (get-content-client)))
                                       )
               )
         )
