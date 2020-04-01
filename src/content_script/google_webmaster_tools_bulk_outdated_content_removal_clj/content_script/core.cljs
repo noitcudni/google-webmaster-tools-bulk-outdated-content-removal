@@ -54,8 +54,7 @@
   (when-not (nil? victim-url)
     (let [ch (chan)]
       (go
-        (let [
-              ;; wait for the button to be loaded
+        (let [;; wait for the button to be loaded
               _ (<! (sync-single-node "//button/div[contains(text(), 'Request Removal')]"))
               ;; Fill out the input field
 
@@ -68,6 +67,7 @@
                           "//div[@role='dialog']//*[contains(text(), 'The URL you want to remove is:')]"
                           "//div[@role='dialog']//*[contains(text(), 'The image you want to remove is:')]"
                           "//div[@role='dialog']//*[contains(text(), 'This content is no longer live on the website.')]"
+                          "//div[contains(text(), 'Dismiss')]"
                           ))]
           (cond
             ;; case 1
@@ -134,8 +134,17 @@
               (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'Request Removal')]")))
               (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'OK')]")))
               (<! (update-storage victim-url "status" "removed")))
-            )
-          ))
+
+            ;;case 5
+            (-> "//div[contains(text(), 'Oops')]"
+                xpath
+                single-node)
+            (when-let [dismiss-btn (-> "//div[contains(text(), 'Dismiss')]" xpath single-node)]
+              ;; TODO log error
+              (.click dismiss-btn)
+              )
+
+            )))
       ch ;;TODO: channel is probably not needed here since the page refreshes.
       )))
 
