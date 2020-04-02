@@ -52,6 +52,9 @@
 (defn exec-removal-request
   [victim-url supplementary-arg]
   (when-not (nil? victim-url)
+    ;; NOTE: in most cases the series of user actions will eventually cause the page to reload.
+    ;; However, for error cases, there's no page reload. Hence, the channel is needed to
+    ;; communicate back up to the call stack.
     (let [ch (chan)]
       (go
         (let [;; wait for the button to be loaded
@@ -121,7 +124,12 @@
                     (.dispatchEvent input-el evt))
 
                   (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'Request Removal')]")))
-                  (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'OK')]")))
+                  (let [el (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'OK')]"
+                                                 "//div[contains(text(), 'Cancel')]"))]
+                    (cond (-> "//div[@role='dialog']//button//div[contains(text(), 'OK')]" xpath single-node) (.click el)
+                          (-> "//div[contains(text(), 'Cancel')]" xpath single-node) (do (.click el)
+                                                                                         (>! ch :invalid-prefilled-url))
+                          ))
                   (<! (update-storage victim-url "status" "removed"))
                   (>! ch :success)
                   ))
@@ -135,17 +143,16 @@
               (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'OK')]")))
               (<! (update-storage victim-url "status" "removed")))
 
-            ;;case 5
+            ;;case 5 : invalid URL entry
             (-> "//div[contains(text(), 'Oops')]"
                 xpath
                 single-node)
             (when-let [dismiss-btn (-> "//div[contains(text(), 'Dismiss')]" xpath single-node)]
               ;; TODO log error
               (.click dismiss-btn)
-              )
-
+              (>! ch :invalid-url))
             )))
-      ch ;;TODO: channel is probably not needed here since the page refreshes.
+      ch
       )))
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
@@ -155,8 +162,14 @@
         {:keys [type victim supplementary-arg] :as whole-msg} (common/unmarshall message)]
     (cond (= type :remove-url) (do (prn "handling removel-url") ;;xxx
                                    (when-not (or (nil? victim) (= victim "poison-pill"))
-                                     (exec-removal-request victim supplementary-arg))
-                                   )
+                                     (go
+                                       (let [request-status (<! (exec-removal-request victim supplementary-arg))]
+                                         ;; encounter an error go to the next victim
+                                         (when (not= request-status :success)
+                                           (post-message! chan (common/marshall {:type :skip-error
+                                                                                 :reason request-status
+                                                                                 :url victim})))
+                                         ))))
           )))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------

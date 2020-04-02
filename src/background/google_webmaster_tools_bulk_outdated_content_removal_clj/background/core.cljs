@@ -9,7 +9,7 @@
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
-            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [store-victims! next-victim]]))
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [update-storage store-victims! next-victim]]))
 
 (def clients (atom []))
 
@@ -68,7 +68,7 @@
   (go-loop []
     (when-some [message (<! client)]
       (prn "BACKGROUND: got client message:" message "from" (get-sender client))
-      (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
+      (let [{:keys [type url reason] :as whole-edn} (common/unmarshall message)]
         (cond (= type :init-victims) (do
                                        (prn "background: inside :init-victims")
                                        (store-victims! whole-edn)
@@ -78,8 +78,13 @@
                                       (prn "background: inside :next-victim")
                                       (<! (fetch-next-victim (get-content-client)))
                                       )
-              )
-        )
+              (= type :skip-error) (do
+                                     (let [updated-error-entry (<! (update-storage url
+                                                                                   "status" "error"
+                                                                                   "error-reason" reason))]
+                                       (prn "updated-error-entry: " updated-error-entry)
+                                       (<! (fetch-next-victim (get-content-client)))))
+              ))
       (recur))
     (prn "BACKGROUND: leaving event loop for client:" (get-sender client))
     (remove-client! client)))
