@@ -83,7 +83,10 @@
                                                                                    "status" "error"
                                                                                    "error-reason" reason))]
                                        (prn "updated-error-entry: " updated-error-entry)
-                                       (<! (fetch-next-victim (get-content-client)))))
+                                       ;; ask the content page to reload
+                                       (post-message! (get-content-client)
+                                                      (common/marshall {:type :reload}))
+                                       ))
               ))
       (recur))
     (prn "BACKGROUND: leaving event loop for client:" (get-sender client))

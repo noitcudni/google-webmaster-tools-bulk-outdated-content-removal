@@ -148,7 +148,6 @@
                 xpath
                 single-node)
             (when-let [dismiss-btn (-> "//div[contains(text(), 'Dismiss')]" xpath single-node)]
-              ;; TODO log error
               (.click dismiss-btn)
               (>! ch :invalid-url))
             )))
@@ -166,10 +165,18 @@
                                        (let [request-status (<! (exec-removal-request victim supplementary-arg))]
                                          ;; encounter an error go to the next victim
                                          (when (not= request-status :success)
+                                           ;; TODO log error
+                                           (prn ">> whole-msg that causes error: " whole-msg)
+                                           ;; reload the page to get to the next victim
+                                           ;; once the background is done handling the error, it will fire back a reload message
                                            (post-message! chan (common/marshall {:type :skip-error
                                                                                  :reason request-status
-                                                                                 :url victim})))
+                                                                                 :url victim}))
+                                           )
                                          ))))
+          (= type :reload) (do (prn "reloading..")
+                               (.reload js/location)
+                               )
           )))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
