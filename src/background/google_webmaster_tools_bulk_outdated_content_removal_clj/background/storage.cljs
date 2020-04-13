@@ -15,17 +15,21 @@
         data (concat data [["poison-pill" *DONE-FLAG*]])]
     (go-loop [[[url supplementary-arg :as curr] & more] data
               idx 0]
-      (let [[_ err] (<! (storage-area/get local-storage url))]
-        (if err
-          (error (str "fetching " url ":") err)
-          (storage-area/set local-storage (clj->js {url {"submit-ts" (tc/to-long (t/now))
-                                                         "remove-ts" nil
-                                                         "supplementary-arg" supplementary-arg
-                                                         "status" "pending"
-                                                         "idx" idx}
-                                                    })))
-        (recur more (inc idx))
-        ))))
+      (if (nil? curr)
+        (log "DONE storing victims")
+        (let [[_ err] (<! (storage-area/get local-storage url))
+              _ (prn "storing - url: " url) ;;xxx
+              ]
+          (if err
+            (error (str "fetching " url ":") err)
+            (storage-area/set local-storage (clj->js {url {"submit-ts" (tc/to-long (t/now))
+                                                           "remove-ts" nil
+                                                           "supplementary-arg" supplementary-arg
+                                                           "status" "pending"
+                                                           "idx" idx}
+                                                      })))
+          (recur more (inc idx))
+          )))))
 
 (defn update-storage [url & args]
   {:pre [(even? (count args))]}
