@@ -47,15 +47,6 @@
             ))))
     ch))
 
-(defn print-victims []
-  (let [local-storage (storage/get-local)]
-    (go
-      (let [[[items] error] (<! (storage-area/get local-storage))]
-        (prn (js->clj items))
-        ))
-    ))
-
-
 (defn current-removal-attempt
   "NOTE: There should only be one item that's undergoing removal.
   Return nil if not found.
@@ -110,3 +101,25 @@
 (defn clear-victims! []
   (let [local-storage (storage/get-local)]
     (storage-area/clear local-storage)))
+
+(defn print-victims []
+  (let [local-storage (storage/get-local)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))]
+        (prn (js->clj items))
+        ))
+    ))
+
+(defn get-bad-victims []
+  (let [local-storage (storage/get-local)
+        ch (chan)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))]
+        (>! ch (->> (or items '())
+                    js->clj
+                    (filter (fn [[k v]]
+                              (let [status (get v "status")]
+                                (= "error" status))))
+                    (sort-by (fn [[_ v]] (get v "idx")))
+                    ))))
+    ch))

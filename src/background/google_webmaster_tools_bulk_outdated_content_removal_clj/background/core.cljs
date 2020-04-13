@@ -8,8 +8,12 @@
             [chromex.protocols.chrome-port :refer [on-disconnect! post-message! get-sender]]
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
+            [chromex.ext.browser-action :refer-macros [set-badge-text set-badge-background-color]]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
-            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [update-storage store-victims! next-victim]]))
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [update-storage store-victims!
+                                                                                                 next-victim
+                                                                                                 print-victims
+                                                                                                 get-bad-victims]]))
 
 (def clients (atom []))
 
@@ -81,8 +85,14 @@
               (= type :skip-error) (do
                                      (let [updated-error-entry (<! (update-storage url
                                                                                    "status" "error"
-                                                                                   "error-reason" reason))]
-                                       (prn "updated-error-entry: " updated-error-entry)
+                                                                                   "error-reason" reason))
+                                           _ (prn "about to call get-bad-victims") ;;xxx
+                                           error-cnt (->> (<! (get-bad-victims)) count str)
+                                           _ (prn "calling get-bad-victims: " error-cnt) ;;xxx
+                                           _ (prn "updated-error-entry: " updated-error-entry)]
+                                       (set-badge-text (clj->js {"text" error-cnt}))
+                                       (set-badge-background-color #js{"color" "#F00"})
+
                                        ;; ask the content page to reload
                                        (post-message! (get-content-client)
                                                       (common/marshall {:type :reload}))

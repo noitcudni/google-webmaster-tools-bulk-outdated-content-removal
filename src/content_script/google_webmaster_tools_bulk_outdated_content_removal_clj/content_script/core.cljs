@@ -165,7 +165,7 @@
                                        (let [request-status (<! (exec-removal-request victim supplementary-arg))]
                                          ;; encounter an error go to the next victim
                                          (when (not= request-status :success)
-                                           ;; TODO log error
+                                           ;; TODO log error. This should probably happen in the background
                                            (prn ">> whole-msg that causes error: " whole-msg)
                                            ;; reload the page to get to the next victim
                                            ;; once the background is done handling the error, it will fire back a reload message

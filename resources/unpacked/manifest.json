@@ -35,7 +35,9 @@
     "persistent": false
   },
   "permissions": [
-    "storage"
+    "storage",
+    "downloads",
+    "unlimitedStorage"
   ],
   "manifest_version": 2
 }
