@@ -25,7 +25,10 @@
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
 
 (defn process-message! [message]
-  (log "POPUP: got message:" message))
+  (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
+    (cond (= type :init-errors) (prn "init-errors: " whole-edn)
+          (= type :new-error) (prn "new-error: " whole-edn)
+          )))
 
 (defn run-message-loop! [message-channel]
   (log "POPUP: starting message loop...")
@@ -36,6 +39,7 @@
     (log "POPUP: leaving message loop")))
 
 (defn connect-to-background-page! [background-port]
+  (post-message! background-port (common/marshall {:type :fetch-initial-errors}))
   (run-message-loop! background-port))
 
 (defn current-page []

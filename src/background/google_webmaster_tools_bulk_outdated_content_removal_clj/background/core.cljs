@@ -95,6 +95,10 @@
                                        (post-message! (get-content-client)
                                                       (common/marshall {:type :reload}))
                                        ))
+              (= type :fetch-initial-errors) (let [_ (prn "inside :fetch-initial-errors:")
+                                                   bad-victims (<! (get-bad-victims))]
+                                               (post-message! client (common/marshall {:type :init-errors
+                                                                                       :bad-victims bad-victims})))
               ))
       (recur))
     (prn "BACKGROUND: leaving event loop for client:" (get-sender client))
