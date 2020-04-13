@@ -23,11 +23,18 @@
 
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
+(def cached-bad-victims-atom (atom nil))
 
 (defn process-message! [message]
   (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
-    (cond (= type :init-errors) (prn "init-errors: " whole-edn)
-          (= type :new-error) (prn "new-error: " whole-edn)
+    (cond (= type :init-errors) (do (prn "init-errors: " whole-edn)
+                                    (reset! cached-bad-victims-atom (-> whole-edn :bad-victims vec)))
+          (= type :new-error) (do (prn "new-error: " whole-edn)
+                                  (swap! cached-bad-victims-atom conj (->> whole-edn
+                                                                           :error
+                                                                           (into [])
+                                                                           first)))
+          :else (prn "uncaught type: " type)
           )))
 
 (defn run-message-loop! [message-channel]

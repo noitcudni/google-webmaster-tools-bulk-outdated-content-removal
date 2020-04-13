@@ -87,9 +87,14 @@
                                                                                    "status" "error"
                                                                                    "error-reason" reason))
                                            error-cnt (->> (<! (get-bad-victims)) count str)
-                                           _ (prn "calling get-bad-victims: " error-cnt)]
+                                           popup-client (get-popup-client)]
                                        (set-badge-text (clj->js {"text" error-cnt}))
                                        (set-badge-background-color #js{"color" "#F00"})
+
+                                       ;; tell popup about the new error
+                                       (when popup-client
+                                         (post-message! popup-client (common/marshall
+                                                                      {:type :new-error :error updated-error-entry})))
 
                                        ;; ask the content page to reload
                                        (post-message! (get-content-client)
