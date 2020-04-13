@@ -1,6 +1,6 @@
 (ns google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [cljs.core.async :refer [<! >! chan]]
+  (:require [cljs.core.async :refer [<! >! chan close!]]
             [cljs-time.core :as t]
             [cljs-time.coerce :as tc]
             [chromex.logging :refer-macros [log info warn error group group-end]]
@@ -82,7 +82,9 @@
                                            first)
             _ (when-not (nil? victim-entry) (<! (update-storage victim-url "status" "removing")))
             victim (<! (current-removal-attempt))]
-        (>! ch victim)
+        (if (nil? victim)
+          (close! ch)
+          (>! ch victim))
         ))
     ch))
 
@@ -98,7 +100,9 @@
             _ (prn "storage: next-victim: " victim) ;;xxx
             ]
         ;; TODO: maybe consider closing the channel
-        (>! ch victim)
+        (if (nil? victim)
+          (close! ch)
+          (>! ch victim))
         ))
     ch))
 

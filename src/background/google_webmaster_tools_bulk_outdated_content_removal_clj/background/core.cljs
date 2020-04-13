@@ -86,10 +86,8 @@
                                      (let [updated-error-entry (<! (update-storage url
                                                                                    "status" "error"
                                                                                    "error-reason" reason))
-                                           _ (prn "about to call get-bad-victims") ;;xxx
                                            error-cnt (->> (<! (get-bad-victims)) count str)
-                                           _ (prn "calling get-bad-victims: " error-cnt) ;;xxx
-                                           _ (prn "updated-error-entry: " updated-error-entry)]
+                                           _ (prn "calling get-bad-victims: " error-cnt)]
                                        (set-badge-text (clj->js {"text" error-cnt}))
                                        (set-badge-background-color #js{"color" "#F00"})
 
