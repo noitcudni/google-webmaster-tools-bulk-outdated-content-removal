@@ -75,7 +75,7 @@
       (let [{:keys [type url reason] :as whole-edn} (common/unmarshall message)]
         (cond (= type :init-victims) (do
                                        (prn "background: inside :init-victims")
-                                       (store-victims! whole-edn)
+                                       (<! (store-victims! whole-edn))
                                        (<! (fetch-next-victim (get-content-client)))
                                        )
               (= type :next-victim) (do
