@@ -57,12 +57,18 @@
     (let [[victim-url victim-entry] (<! (next-victim))
           _ (prn "fetch-next-victim: victim-url: " victim-url)
           _ (prn "fetch-next-victim: victim-entry: " victim-entry)]
-      ;; TODO what to do with victim-entry
-      (post-message! client
-                     (common/marshall {:type :remove-url
-                                       :victim victim-url
-                                       :supplementary-arg (get victim-entry "supplementary-arg")
-                                       }))
+      (if (= victim-url "poison-pill")
+        (do (prn "DONE!!!")
+            (when (get-popup-client)
+                (post-message! (get-popup-client)
+                            (common/marshall {:type :done})))
+            (post-message! client
+                           (common/marshall {:type :done})))
+        (post-message! client
+                       (common/marshall {:type :remove-url
+                                         :victim victim-url
+                                         :supplementary-arg (get victim-entry "supplementary-arg")
+                                         })))
       )))
 
 ; -- client event loop ------------------------------------------------------------------------------------------------------
