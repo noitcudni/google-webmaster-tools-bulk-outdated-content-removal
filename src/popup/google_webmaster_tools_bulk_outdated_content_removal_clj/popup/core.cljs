@@ -55,6 +55,12 @@
   (post-message! background-port (common/marshall {:type :fetch-initial-errors}))
   (run-message-loop! background-port))
 
+(defn csv-content [input]
+  (->> input
+       clojure.walk/keywordize-keys
+       (map (fn [[url {:keys [supplementary-arg error-reason] :as v}]]
+              [url supplementary-arg error-reason]))))
+
 (defn current-page []
   (let [disable-error-download-ratom? (reaction (or (not= :done @my-status)
                                                     (zero? (count @cached-bad-victims-atom))))
