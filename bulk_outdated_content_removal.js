@@ -1,13 +1,3 @@
-var buttonCss = {
-  "background-color": "#d14836",
-  "color": "#fff",
-  "padding": "8px",
-  "line-height": "27px",
-  "margin-top" : "4px",
-  "margin-left" : "4px"
-};
-
-
 // wait for the first selector to be visible and then click on it
 // Then, do the same for the next selector in the array.
 function clickWithWait(selectorArray) {
@@ -97,9 +87,11 @@ function longPoll() {
       }
     });
 
-    var $labelFileInput = $("<label for='fileInput'>Upload Your File</label>");
+    var buttonClasses = $requestRemovalbtn.parent().attr('class');
+    var buttonInnerClasses = $requestRemovalbtn.attr('class');
+
+    var $labelFileInput = $("<label class='" + buttonClasses + "' for='fileInput' style='margin-left:4px'><div class='" + buttonInnerClasses + "'>Upload Your File</div></label>");
     var $fileInput = $("<input style='display:none' id='fileInput' type='file' />");
-    $labelFileInput.css(buttonCss);
 
     $requestRemovalbtn.parent().parent().append($labelFileInput);
     $requestRemovalbtn.parent().parent().append($fileInput);
