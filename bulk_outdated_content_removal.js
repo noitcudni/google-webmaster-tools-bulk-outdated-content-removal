@@ -44,8 +44,8 @@ function removal_type_mux(supplementary_arg) {
   var $dialog = $("div[role='dialog']");
   console.log($dialog);//xxx
 
+  window.setTimeout(removal_type_mux, 1000, supplementary_arg);
   if ($dialog == null || !$dialog.is(':visible')) {
-    window.setTimeout(removal_type_mux, 1000, supplementary_arg);
   } else {
     if ($dialog.text().includes("analyzingCancel")) {
       window.setTimeout(removal_type_mux, 1000, supplementary_arg);
@@ -55,6 +55,8 @@ function removal_type_mux(supplementary_arg) {
                      "div[role='dialog'] button div:contains('OK')"]);
 
     // } else if ($dialog.text().includes("We think the web page you're trying to remove hasn't been removed by the site owner.")) {
+    } else if ($dialog.text().includes("A removal request for this URL has already been made.")) {
+      clickWithWait(["div[role='dialog'] button div:contains('Cancel')"]);
     } else if ($dialog.text().includes("The URL you want to remove is:")) {
       // changed_content
       clickWithWait(["div[role='dialog'] button div:contains('Next')",
