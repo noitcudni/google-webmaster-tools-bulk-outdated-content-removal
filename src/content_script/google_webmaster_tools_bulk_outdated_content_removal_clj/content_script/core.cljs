@@ -189,6 +189,7 @@
           (= type :reload) (do (prn "reloading..")
                                (.reload js/location)
                                )
+          (= type :done ) (js/alert "All done!")
           )))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
