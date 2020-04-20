@@ -8,7 +8,7 @@
             [domina :refer [single-node nodes style styles]]
             [domina.xpath :refer [xpath]]
             [dommy.core :refer-macros [sel sel1] :as dommy]
-            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [update-storage]]
+            [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [update-storage clear-victims!]]
             ))
 
 (defn sync-node-helper
@@ -189,7 +189,9 @@
           (= type :reload) (do (prn "reloading..")
                                (.reload js/location)
                                )
-          (= type :done ) (js/alert "All done!")
+          (= type :done ) (do
+                            (go (<! (clear-victims!))
+                                (js/alert "All done!")))
           )))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
