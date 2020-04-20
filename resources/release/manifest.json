@@ -1,6 +1,6 @@
 {
-  "name": "chromex-sample",
-  "version": "0.1.0",
+  "name": "WebMaster Tools - Bulk Outdated Content Removal",
+  "version": "1.0.0",
   "browser_action": {
     "default_title": "Show the popup",
     "default_popup": "popup.html"
