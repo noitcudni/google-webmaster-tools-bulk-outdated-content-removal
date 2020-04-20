@@ -1,5 +1,5 @@
 {
-  "name": "WebMaster Tools - Bulk Outdated Content Removal",
+  "name": "WebMasterTools: Bulk Outdated Content Removal",
   "version": "1.0.0",
   "browser_action": {
     "default_title": "Show the popup",
