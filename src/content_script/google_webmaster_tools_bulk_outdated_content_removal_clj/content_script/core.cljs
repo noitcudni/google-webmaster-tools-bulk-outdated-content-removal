@@ -139,9 +139,19 @@
                 xpath
                 single-node)
             (do
+              (prn "case 4: content is no longer live on the website")
               (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'Request Removal')]")))
-              (.click (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'OK')]")))
-              (<! (update-storage victim-url "status" "removed")))
+              (let [el (<! (sync-single-node "//div[@role='dialog']//button//div[contains(text(), 'OK')]"
+                                             "//div[@role='dialog']//div[contains(text(), 'A removal request for this URL has already been made.')]"))]
+                (cond
+                  ;; success
+                  (-> "//div[@role='dialog']//button//div[contains(text(), 'OK')]" xpath single-node)
+                  (do (.click el)
+                      (<! (update-storage victim-url "status" "removed")))
+                  ;; duplicate url case
+                  (-> "//div[@role='dialog']//div[contains(text(), 'A removal request for this URL has already been made.')]" xpath single-node)
+                  (do (.click (-> "//div[@role='dialog']//button//div[contains(text(), 'Cancel')]" xpath single-node))
+                      (<! (update-storage victim-url "status" "removed"))))))
 
             ;;case 5 : invalid URL entry
             (-> "//div[contains(text(), 'Oops')]"
@@ -150,6 +160,8 @@
             (when-let [dismiss-btn (-> "//div[contains(text(), 'Dismiss')]" xpath single-node)]
               (.click dismiss-btn)
               (>! ch :invalid-url))
+            :else
+            (prn "Didn't satisfy any of the above cases!!")
             )))
       ch
       )))
