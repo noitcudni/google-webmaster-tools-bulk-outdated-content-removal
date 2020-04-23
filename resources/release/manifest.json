@@ -28,8 +28,7 @@
   },
   "permissions": [
     "storage",
-    "downloads",
-    "unlimitedStorage"
+    "downloads"
   ],
   "manifest_version": 2
 }
