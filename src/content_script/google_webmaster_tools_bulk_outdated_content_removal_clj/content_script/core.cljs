@@ -112,8 +112,7 @@
                 (<! (sync-single-node "//div[@role='dialog']//input[@placeholder='Example URL: https://www.google.com/url?url=http://www.example.com/oldpage']"))
                 (when-not (empty? supplementary-arg)
                   ;; TODO: The button isn't lit up!
-                  (let [key-evt (js/document.createEvent "KeyboardEvent")
-                        evt (js/document.createEvent "HTMLEvents")
+                  (let [evt (js/document.createEvent "HTMLEvents")
                         _ (.initEvent evt "keyup" true false)
                         _ (aset evt "keyCode" 13)
                         input-el (-> "//div[@role='dialog']//input[@placeholder='Example URL: https://www.google.com/url?url=http://www.example.com/oldpage']"
