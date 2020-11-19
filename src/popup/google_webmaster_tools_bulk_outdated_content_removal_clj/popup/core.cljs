@@ -89,7 +89,16 @@
                      :align :start
                      :style {:padding "10px"}
                      :children [[recom/title :label "Instructions:" :level :level1]
-                                [recom/label :label "- more instructions go here"]]
+                                [recom/label :label "- Visit https://search.google.com/search-console/remove-outdated-content"]
+                                [recom/label :label "- Upload your csv file by clicking on the Submit CSV File button."]
+                                [recom/hyperlink-href
+                                 :label "CSV Format Documentation"
+                                 :href "https://github.com/noitcudni/google-webmaster-tools-bulk-outdated-content-removal#csv-format"
+                                 :target "_blank"]
+                                [recom/hyperlink-href
+                                 :label "example 1"
+                                 :href "examples/examples.csv"]
+                                ]
                      ]
                     [recom/v-box
                      :gap "10px"

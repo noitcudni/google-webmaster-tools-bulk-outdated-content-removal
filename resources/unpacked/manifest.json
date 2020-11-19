@@ -19,12 +19,13 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.google.com/webmasters/tools/removals*"
+        "https://search.google.com/search-console/remove-outdated-content*"
       ],
       "js": [
+        "inject.js",
         "compiled/content-script/main.js"
       ],
-      "run_at": "document_end"
+      "run_at": "document_start"
     }
   ],
   "background": {

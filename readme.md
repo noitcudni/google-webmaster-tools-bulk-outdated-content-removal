@@ -22,7 +22,7 @@ https://chrome.google.com/webstore/detail/webmastertools-bulk-outda/nifcnomokiln
 
 ## Usage
 1. Create a list of urls to be removed and store them in a file. See below for format.
-2. Go to Google Webmaster Remove Outdated Content page. (https://www.google.com/webmasters/tools/removals)
+2. Go to Google Webmaster Remove Outdated Content page. (https://search.google.com/search-console/remove-outdated-content)
 3. Open up the extension popup by clicking on the red trash can icon.
 4. Click on the "Submit CSV File" button to upload your csv file. It will start running automatically.
 
@@ -45,4 +45,8 @@ url, word
 * If the image url's has been removed or updated
 ```
 image-url, url-of-the-page
+```
+* It also takes google search image urls
+```
+https://www.google.com/imgres?imgurl=...
 ```

@@ -6,12 +6,15 @@
             [chromex.logging :refer-macros [log info warn error group group-end]]
             [chromex.chrome-event-channel :refer [make-chrome-event-channel]]
             [chromex.protocols.chrome-port :refer [on-disconnect! post-message! get-sender]]
+            [cljs-time.core :as tt]
+            [cljs-time.coerce :as tc]
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [chromex.ext.browser-action :refer-macros [set-badge-text set-badge-background-color]]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.content-script.common :as common]
             [google-webmaster-tools-bulk-outdated-content-removal-clj.background.storage :refer [update-storage store-victims!
                                                                                                  next-victim
+                                                                                                 clear-victims!
                                                                                                  print-victims
                                                                                                  get-bad-victims]]))
 
@@ -60,8 +63,8 @@
       (if (= victim-url "poison-pill")
         (do (prn "DONE!!!")
             (when (get-popup-client)
-                (post-message! (get-popup-client)
-                            (common/marshall {:type :done})))
+              (post-message! (get-popup-client)
+                             (common/marshall {:type :done})))
             (post-message! client
                            (common/marshall {:type :done})))
         (post-message! client
@@ -81,31 +84,42 @@
       (let [{:keys [type url reason] :as whole-edn} (common/unmarshall message)]
         (cond (= type :init-victims) (do
                                        (prn "background: inside :init-victims")
+                                       ;; clean up errors from the previous run
+                                       (<! (clear-victims!))
+                                       (set-badge-text #js{"text" ""})
                                        (<! (store-victims! whole-edn))
-                                       (<! (fetch-next-victim (get-content-client)))
-                                       )
+                                       (post-message! (get-content-client) (common/marshall {:type :done-init-victims})))
               (= type :next-victim) (do
                                       (prn "background: inside :next-victim")
                                       (<! (fetch-next-victim (get-content-client)))
                                       )
-              (= type :skip-error) (do
-                                     (let [updated-error-entry (<! (update-storage url
-                                                                                   "status" "error"
-                                                                                   "error-reason" reason))
-                                           error-cnt (->> (<! (get-bad-victims)) count str)
-                                           popup-client (get-popup-client)]
-                                       (set-badge-text (clj->js {"text" error-cnt}))
-                                       (set-badge-background-color #js{"color" "#F00"})
+              (= type :success) (go
+                                  (prn "background: handle sucess!!")
+                                  (let [{:keys [url]} whole-edn]
+                                    (<! (update-storage url
+                                                        "status" "removed"
+                                                        "remove-ts" (tc/to-long (tt/now))
+                                                        ))
+                                    (<! (fetch-next-victim client))
+                                    ))
+              (= type :skip-error) (let [updated-error-entry (<! (update-storage url
+                                                                                 "status" "error"
+                                                                                 "error-reason" reason))
+                                         error-cnt (->> (<! (get-bad-victims)) count str)
+                                         popup-client (get-popup-client)]
+                                     (set-badge-text (clj->js {"text" error-cnt}))
+                                     (set-badge-background-color #js{"color" "#F00"})
 
-                                       ;; tell popup about the new error
-                                       (when popup-client
-                                         (post-message! popup-client (common/marshall
-                                                                      {:type :new-error :error updated-error-entry})))
+                                     ;; tell popup about the new error
+                                     (when popup-client
+                                       (post-message! popup-client (common/marshall
+                                                                    {:type :new-error :error updated-error-entry})))
 
-                                       ;; ask the content page to reload
-                                       (post-message! (get-content-client)
-                                                      (common/marshall {:type :reload}))
-                                       ))
+                                     ;; ask the content page to reload
+                                     ;; (post-message! (get-content-client)
+                                     ;;                (common/marshall {:type :reload}))
+                                     (<! (fetch-next-victim (get-content-client)))
+                                     )
               (= type :fetch-initial-errors) (let [_ (prn "inside :fetch-initial-errors:")
                                                    bad-victims (<! (get-bad-victims))]
                                                (post-message! client (common/marshall {:type :init-errors
